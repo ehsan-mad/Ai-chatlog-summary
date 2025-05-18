@@ -43,6 +43,8 @@ def parse_chat_log(file_path):
                     current_message += " " + line
             
             # Don't forget to add the last message
+            
+            
             if current_speaker == "User" and current_message:
                 user_messages.append(current_message.strip())
             elif current_speaker == "AI" and current_message:
@@ -97,3 +99,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
