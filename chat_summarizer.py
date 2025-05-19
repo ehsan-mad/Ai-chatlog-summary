@@ -59,6 +59,53 @@ def parse_chat_log(file_path):
         
     return user_messages, ai_messages
 
+def extract_keywords(messages, top_n=5):
+    """
+    Extract the most common keywords from a list of messages.
+    
+    Args:
+        messages (list): List of messages to analyze
+        top_n (int): Number of top keywords to return
+        
+    Returns:
+        list: Top keywords with their counts
+    """
+    import re
+    from collections import Counter
+    
+    # Common English stop words to exclude
+    stop_words = {
+        'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 
+        'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 
+        'she', 'her', 'hers', 'herself', 'it', 'its', 'itself', 'they', 'them', 
+        'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 
+        'that', 'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 
+        'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 
+        'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 
+        'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 
+        'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 
+        'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 
+        'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 
+        'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 
+        'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 
+        'very', 's', 't', 'can', 'will', 'just', 'don', 'should', 'now'
+    }
+    
+    # Combine all messages into one text
+    all_text = ' '.join(messages)
+    
+    # Extract words (only alphabetic characters, convert to lowercase)
+    words = re.findall(r'\b[a-zA-Z]{3,}\b', all_text.lower())
+    
+    # Filter out stop words
+    filtered_words = [word for word in words if word not in stop_words]
+    
+    # Count word frequencies
+    word_counts = Counter(filtered_words)
+    
+    # Return top N keywords
+    return word_counts.most_common(top_n)
+
 def generate_summary(user_messages, ai_messages):
     """
     Generate a summary of the chat log.
@@ -72,10 +119,29 @@ def generate_summary(user_messages, ai_messages):
     """
     total_messages = len(user_messages) + len(ai_messages)
     
+    # Calculate the number of exchanges (a user message followed by an AI response)
+    exchanges = min(len(user_messages), len(ai_messages))
+    
+    # Add any remaining messages that don't form complete exchanges
+    if len(user_messages) > len(ai_messages):
+        exchanges += 1
+    
+    # Extract keywords from all messages
+    all_messages = user_messages + ai_messages
+    top_keywords = extract_keywords(all_messages, top_n=5)
+    
+    # Format the keywords for display
+    keyword_str = ', '.join([f"{keyword}" for keyword, _ in top_keywords])
+    
+    # Create the summary
     summary = "=== Chat Summary ===\n"
     summary += f"Total messages: {total_messages}\n"
     summary += f"User messages: {len(user_messages)}\n"
     summary += f"AI messages: {len(ai_messages)}\n"
+    summary += f"Total exchanges: {exchanges}\n"
+    
+    if top_keywords:
+        summary += f"\nMost common keywords: {keyword_str}\n"
     
     return summary
 
