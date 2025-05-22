@@ -106,6 +106,27 @@ def extract_keywords(messages, top_n=5):
     # Return top N keywords
     return word_counts.most_common(top_n)
 
+def determine_conversation_nature(keywords):
+    """
+    Determine the nature of the conversation based on keywords.
+    
+    Args:
+        keywords (list): List of (keyword, count) tuples
+        
+    Returns:
+        str: Description of the conversation nature
+    """
+    if not keywords:
+        return "Unable to determine the nature of the conversation."
+    
+    # Extract just the keywords
+    topics = [keyword for keyword, _ in keywords]
+    
+    # Join the keywords into a readable string
+    topic_str = ', '.join(topics)
+    
+    return f"The conversation was mainly about {topic_str}."
+
 def generate_summary(user_messages, ai_messages):
     """
     Generate a summary of the chat log.
@@ -130,10 +151,13 @@ def generate_summary(user_messages, ai_messages):
     all_messages = user_messages + ai_messages
     top_keywords = extract_keywords(all_messages, top_n=5)
     
+    # Determine the nature of the conversation
+    conversation_nature = determine_conversation_nature(top_keywords)
+    
     # Format the keywords for display
     keyword_str = ', '.join([f"{keyword}" for keyword, _ in top_keywords])
     
-    # Create the summary
+    # Create the detailed summary
     summary = "=== Chat Summary ===\n"
     summary += f"Total messages: {total_messages}\n"
     summary += f"User messages: {len(user_messages)}\n"
@@ -142,6 +166,12 @@ def generate_summary(user_messages, ai_messages):
     
     if top_keywords:
         summary += f"\nMost common keywords: {keyword_str}\n"
+    
+    # Add the simplified summary format
+    summary += "\nSummary:\n"
+    summary += f"- The conversation had {exchanges} exchanges.\n"
+    summary += f"- {conversation_nature}\n"
+    summary += f"- Most common keywords: {keyword_str}.\n"
     
     return summary
 
